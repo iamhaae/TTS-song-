@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TTS 노래 에디터</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Pixelify+Sans&display=swap">
+<style>
+:root{--bg:#fff;--fg:#1c1b22;--card:#f3f1f7;--bd:#d6d1e2;--ac:#7a2e5a;--hi:#ffd9ec;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15131a;--fg:#ece8f3;--card:#221f2b;--bd:#3a3548;--ac:#e0709f;--hi:#4a2438;color-scheme:dark}}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;padding:14px;background:var(--bg);color:var(--fg);font:15px/1.5 "Gowun Dodum","Noto Sans KR",system-ui,sans-serif;max-width:900px;margin-inline:auto}
+h1{display:flex;justify-content:space-between;align-items:center;margin:0 0 10px;padding:6px 10px;font-size:17px;font-weight:700;color:#fff;text-shadow:1px 1px 0 #6b4aa8;background:linear-gradient(90deg,#7fb8ee,#c88ae8 55%,#ff8cc8);border:2px solid var(--bd);box-shadow:3px 3px 0 var(--bd)}
+h1::before{content:"★";margin-right:6px}
+h1::after{content:"_  □  ×";margin-left:auto;font-size:12px;color:#6b4aa8;background:#fff;border:1.5px solid var(--bd);padding:0 6px;text-shadow:none;letter-spacing:1px}
+p.s{margin:0 0 12px;opacity:.75;font-size:13px}
+textarea,select,input,button{font:inherit;color:var(--fg);background:var(--card);border:1.5px solid var(--bd);border-radius:3px;padding:5px 8px}
+textarea{width:100%;min-height:90px;box-sizing:border-box}
+button{cursor:pointer;box-shadow:2px 2px 0 var(--bd)}
+button:active{transform:translate(2px,2px);box-shadow:none}
+button.p{background:var(--ac);color:#fff;border-color:var(--ac)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}
+.row label{display:flex;gap:6px;align-items:center;font-size:13px}
+.grid{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.br{flex-basis:100%;height:0}
+.c{background:var(--card);border:1.5px solid var(--bd);border-radius:3px;box-shadow:2px 2px 0 var(--bd);padding:6px;display:flex;flex-direction:column;gap:4px;width:74px}
+.c.on{background:var(--hi);border-color:var(--ac)}
+.c.rest{opacity:.5}
+.c input.t{text-align:center;font-size:18px;padding:2px;width:100%;box-sizing:border-box}
+.c select{padding:2px;font-size:12px;width:100%}
+.c button{padding:2px;font-size:11px}
+.note{font-size:12px;margin-top:14px;background:#fff7b8;color:#4a3f1a;padding:10px 12px;border:1.5px solid #e2d27a;box-shadow:3px 3px 0 rgba(0,0,0,.12);transform:rotate(-.6deg)}
+/* Y2K */
+:root{--bg:#f7f1fd;--fg:#2b2147;--card:#fff;--bd:#9b86d6;--ac:#f0489f;--hi:#ffc4e4}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#241a3d;--fg:#f5ecff;--card:#33264f;--bd:#a58be6;--ac:#ff6fb8;--hi:#6a2d62}}
+body{font-family:"Pixelify Sans","Gowun Dodum","Noto Sans KR",sans-serif;background:radial-gradient(circle at 15% 0,#ffe0f2 0,transparent 45%),radial-gradient(circle at 95% 8%,#d9ecff 0,transparent 45%),var(--bg);background-attachment:fixed;padding-bottom:68px}
+body::before{content:"";display:block;height:12px;margin:-14px -14px 12px;background:conic-gradient(#ffb3dc 25%,#fff 0 50%,#ffb3dc 0 75%,#fff 0) 0 0/12px 12px;border-bottom:2px solid var(--bd)}
+textarea,select,input:not([type]),input[type=number]{background:#fff;color:#2b2147;border:2px solid var(--bd);border-radius:2px;box-shadow:inset 2px 2px 0 #e6def7}
+button{background:linear-gradient(#fff0f9,#ffc2e3);color:#4a2060;border:2px solid var(--bd);border-radius:4px;box-shadow:inset -1px -1px 0 #d58bbd,inset 1px 1px 0 #fff,2px 2px 0 var(--bd)}
+button.p{background:linear-gradient(#ff9ed2,#f0489f);color:#fff;border-color:#b0307a;text-shadow:1px 1px 0 #b0307a}
+button:active{transform:translate(2px,2px);box-shadow:inset 1px 1px 0 #d58bbd}
+.c{background:linear-gradient(90deg,#9ad0f5,#e2a9f2,#ffb3d9) top/100% 9px no-repeat,var(--card);border:2px solid var(--bd);border-radius:3px;box-shadow:3px 3px 0 var(--bd);padding-top:14px;width:78px}
+.c.rest{background:linear-gradient(90deg,#c9c9d9,#e4e4ee) top/100% 9px no-repeat,var(--card)}
+.c.on{background:linear-gradient(90deg,#9ad0f5,#e2a9f2,#ffb3d9) top/100% 9px no-repeat,var(--hi);border-color:var(--ac);box-shadow:3px 3px 0 var(--ac)}
+.tb{position:fixed;left:0;right:0;bottom:0;display:flex;gap:8px;align-items:center;padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));background:linear-gradient(#cfc0f2,#b5a3e8);border-top:2px solid #fff;font-size:13px;z-index:5}
+.tb .st{background:linear-gradient(#ffb3dc,#f0489f);color:#fff;font-weight:700;padding:3px 14px;border:2px solid #b0307a;border-radius:3px;text-shadow:1px 1px 0 #b0307a}
+.tb .tk{background:#e9e0fb;border:2px inset #a58be6;padding:3px 10px;color:#2b2147}
+body{background:radial-gradient(rgba(255,255,255,.75) 22%,transparent 24%) 0 0/20px 20px,linear-gradient(160deg,#ffd9ee,#e3d6ff 50%,#cfe6ff);background-attachment:fixed}
+p.s{display:inline-block;background:#fff;border:2px solid var(--bd);border-radius:14px;padding:2px 12px;color:#c0307a;opacity:1}
+.mb{display:flex;gap:14px;flex-wrap:wrap;margin:-4px 0 10px;padding:4px 10px;background:linear-gradient(#fff,#ffd3ea);border:2px solid var(--bd);font-size:13px;color:#8a2a66}
+#lyr{border:2px solid var(--bd);border-radius:0;box-shadow:3px 3px 0 var(--bd);background:#fff}
+:root{--bd:#4670dc}
+body{background:radial-gradient(#d6d9f5 1px,transparent 1.6px) 0 0/16px 16px,linear-gradient(180deg,#fcfbff,#eef1fc);background-attachment:fixed}
+body::before{background:conic-gradient(#3f6be0 25%,#fff 0 50%,#3f6be0 0 75%,#fff 0) 0 0/12px 12px}
+h1,.wt{background:linear-gradient(90deg,#2d5bd1,#5b8cf5 60%,#a9c4ff);text-shadow:1px 1px 0 #1f3f9a}
+h1::after{color:#2d5bd1}
+.wt{display:flex;justify-content:space-between;align-items:center;margin-top:4px;padding:3px 8px;font-size:13px;color:#fff;border:2px solid var(--bd);border-bottom:0}
+.mb{background:linear-gradient(#fff,#dce7ff);color:#2d4fa8}
+p.s{color:#2d4fa8}
+.c{background:linear-gradient(90deg,#2d5bd1,#7aa6ff) top/100% 9px no-repeat,#fff}
+.c.rest{background:linear-gradient(90deg,#b9bdd0,#dfe2ee) top/100% 9px no-repeat,#fff}
+.c.on{background:linear-gradient(90deg,#2d5bd1,#7aa6ff) top/100% 9px no-repeat,var(--hi)}
+.tb{background:linear-gradient(#d3e0fb,#a9bff2)}
+.tb .tk{background:#e6eeff;border-color:#7f9cf0}
+/* 핑크 통일 */
+:root{--fg:#4a1d3d;--bd:#ec8fc4;--ac:#f0489f;--hi:#ffc4e4}
+body{color:#4a1d3d;background:radial-gradient(rgba(255,120,190,.22) 18%,transparent 20%) 0 0/18px 18px,linear-gradient(180deg,#fff8fc,#ffe4f3 60%,#ffd0ea);background-attachment:fixed}
+body::before{background:conic-gradient(#ff9fd0 25%,#fff 0 50%,#ff9fd0 0 75%,#fff 0) 0 0/12px 12px}
+h1,.wt{background:linear-gradient(90deg,#ffa6d6,#ff6fb5 55%,#f0489f);text-shadow:1px 1px 0 #b0307a}
+h1::after{color:#c0307a}
+.mb{background:linear-gradient(#fff,#ffd3ea);color:#b0307a}
+p.s{color:#c0307a}
+textarea,select,input:not([type]),input[type=number]{color:#4a1d3d;box-shadow:inset 2px 2px 0 #ffe0f1}
+input{accent-color:#f0489f}
+.c{background:linear-gradient(90deg,#ffb3dc,#ff7fc0,#f0489f) top/100% 9px no-repeat,#fff}
+.c.rest{background:linear-gradient(90deg,#e8d5e0,#f3e6ee) top/100% 9px no-repeat,#fff}
+.c.on{background:linear-gradient(90deg,#ffb3dc,#ff7fc0,#f0489f) top/100% 9px no-repeat,var(--hi)}
+.tb{background:linear-gradient(#ffd0ea,#ff9fd0)}
+.tb .tk{background:#fff0f8;border-color:#ec8fc4;color:#4a1d3d}
+.row select{max-width:150px}
+#lyr{border:8px solid transparent;border-radius:0;box-shadow:none;background:linear-gradient(#fff,#fff) padding-box,conic-gradient(#ff8cc8 25%,#fff 0 50%,#ff8cc8 0 75%,#fff 0) 0 0/16px 16px border-box}
+#toast{display:none;position:fixed;left:12px;right:12px;bottom:calc(54px + env(safe-area-inset-bottom,0px));z-index:9;background:#fff;color:#2b2147;border:2px solid var(--ac);box-shadow:3px 3px 0 var(--ac);padding:8px 12px}
+</style>
+</head>
+<body>
+<h1>TTS 노래 에디터</h1>
+<div class="mb"><span>파일(F)</span><span>편집(E)</span><span>보기(V)</span><span>도구(T)</span><span>도움말(H)</span><span style="margin-left:auto">♡ ♡ ♡</span></div>
+<p class="s">가사 → 음절 → 음정·박자 맞추기 / 영어는 단어째 한 칸, 음절로 쪼개려면 but-ter-fly 처럼 하이픈(-)</p>
+
+<div class="wt"><span>♡ lyrics.txt</span><span>_  □  ×</span></div>
+<textarea id="lyr" placeholder="가사 입력 (줄바꿈 가능 / 영어는 단어 단위, sun-set 처럼 - 로 끊으면 음절 단위)">달빛 아래 피어난 붉은 장미
+썩어가는 도시에 울리는 종소리</textarea>
+<div class="row">
+  <button class="p" id="split">음절로 나누기</button>
+  <button id="fill">멜로디 자동 채우기</button>
+</div>
+
+<div class="row">
+  <label>BPM <input id="bpm" type="number" value="80" min="30" max="240" style="width:64px"></label>
+  <label>한국어 여 <select id="voice"></select></label>
+  <label>한국어 남 <select id="voiceKm"></select></label>
+  <label>영어 여 <select id="voiceEf"></select></label>
+  <label>영어 남 <select id="voiceEm"></select></label>
+  <label>기본 성별 <select id="gall"><option value="0">여성</option><option value="1">남성</option></select></label>
+  <label>발음 속도 <input id="rate" type="range" min="0.6" max="2" step="0.1" value="1.2"></label>
+  <label>기본 박 <select id="defb"><option>0.5</option><option selected>1</option><option>2</option></select></label>
+  <label>조성 <select id="key"><option value="0" selected>C</option><option value="1">Db</option><option value="2">D</option><option value="3">Eb</option><option value="4">E</option><option value="5">F</option><option value="6">F#</option><option value="7">G</option><option value="8">Ab</option><option value="9">A</option><option value="10">Bb</option><option value="11">B</option></select></label>
+  <label>음계 <select id="mode"><option value="maj" selected>장음계</option><option value="min">마이너 (자연+화성)</option><option value="nat">자연 단음계</option><option value="har">화성 단음계</option></select></label>
+</div>
+<div class="row">
+  <button class="p" id="play">재생</button>
+  <button id="stop">정지</button>
+  <label><input type="checkbox" id="loop"> 반복</label>
+  <label><input type="checkbox" id="click" checked> 메트로놈 클릭</label>
+  <button id="saveP">프로젝트 저장(.json)</button>
+  <button id="loadP">불러오기</button>
+  <button id="recB">녹음 저장(.webm)</button>
+  <input type="file" id="fileIn" accept=".json,application/json" hidden>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<p class="note">참고: 브라우저 TTS는 음절마다 따로 읽어서 타이밍이 약간 흔들릴 수 있어요. 일부 목소리(특히 구글 음성)는 음정 조절을 무시하니, 음정이 안 변하면 목소리를 바꿔보세요. 아이패드는 '녹음 저장'이 안 돼서, 제어센터 화면 기록을 켜고 재생하면 소리까지 녹음돼요. 작업 내용은 프로젝트 저장(json)으로 보관해요. 컴퓨터 크롬에서는 녹음 저장도 쓸 수 있어요.</p>
+
+<script>
+// F 마이너(자연 단음계 + 화성 E) 음 목록: F3 ~ F5, F4 기준 반음 오프셋
+// 조성/음계 선택 가능. 음 높이는 F4 기준 반음 오프셋(s), 음계는 으뜸음(tonic) 기준 간격.
+var PCN=["C","Db","D","Eb","E","F","F#","G","Ab","A","Bb","B"];
+var MODES={min:[0,2,3,5,7,8,10,11],nat:[0,2,3,5,7,8,10],har:[0,2,3,5,7,8,11],maj:[0,2,4,5,7,9,11]};
+var NOTES=[],tonic=0,modeKey="maj";
+function buildNotes(){
+  NOTES=[];var iv=MODES[modeKey];
+  for(var s=-24;s<=12;s++){
+    var m=65+s,pc=m%12;
+    if(iv.indexOf((pc-tonic+12)%12)<0)continue;
+    NOTES.push({n:PCN[pc]+(Math.floor(m/12)-1),s:s});
+  }
+}
+buildNotes();
+var BEATS=[0.25,0.5,1,1.5,2,3,4];
+var rows=[],timers=[],playing=false,voices=[];
+var $=function(i){return document.getElementById(i)};
+
+var FEM=/yuna|samantha|karen|moira|tessa|victoria|fiona|allison|ava|susan|zira|heami|sora|nora|kathy|flo|sandy|shelley|serena|female|google 한국어/i;
+var MAL=/daniel|alex|fred|tom|aaron|gordon|oliver|arthur|rishi|david|mark|injoon|junwoo|reed|eddy|rocko|\bmale\b/i;
+function guessG(n){return MAL.test(n)?1:FEM.test(n)?0:-1}
+function fillV(id,list,g){
+  var sel=$(id),prev=sel.value,pick=-1;sel.innerHTML="";
+  list.forEach(function(v,i){
+    var gg=guessG(v.name),o=document.createElement("option");
+    o.value=v.voiceURI||v.name;
+    o.textContent=v.name+" ("+v.lang+")"+(gg===1?" 남":gg===0?" 여":"");
+    sel.appendChild(o);
+    if(pick<0&&gg===g)pick=i;
+  });
+  var keep=[].some.call(sel.options,function(o){return o.value===prev});
+  if(prev&&keep)sel.value=prev;else if(pick>=0)sel.selectedIndex=pick;
+}
+function loadVoices(){
+  voices=speechSynthesis.getVoices();
+  var ko=voices.filter(function(v){return /^ko/i.test(v.lang)});
+  var en=voices.filter(function(v){return /^en/i.test(v.lang)});
+  var kl=ko.length?ko:voices,el=en.length?en:voices;
+  fillV("voice",kl,0);fillV("voiceKm",kl,1);fillV("voiceEf",el,0);fillV("voiceEm",el,1);
+}
+if("speechSynthesis" in window){loadVoices();speechSynthesis.onvoiceschanged=loadVoices}
+
+function split(){
+  var text=$("lyr").value;var db=parseFloat($("defb").value);
+  rows=[];
+  var lines=text.split("\n");
+  lines.forEach(function(ln,li){
+    (ln.match(/[A-Za-z0-9'’]+|[^\s-]/g)||[]).forEach(function(ch){
+      rows.push({ch:ch,semi:0,beats:db,rest:false,nl:false,g:parseInt($("gall").value,10)||0});
+    });
+    if(rows.length&&li<lines.length-1)rows[rows.length-1].nl=true;
+  });
+  render();
+}
+
+function render(){
+  var g=$("grid");g.innerHTML="";
+  rows.forEach(function(r,i){
+    var d=document.createElement("div");d.className="c"+(r.rest?" rest":"");d.id="c"+i;
+    var t=document.createElement("input");t.className="t";t.value=r.ch;
+    t.style.fontSize=r.ch.length>6?"11px":r.ch.length>3?"14px":"";
+    t.oninput=function(){r.ch=t.value};
+    var ns=document.createElement("select");
+    NOTES.forEach(function(n){var o=document.createElement("option");o.value=n.s;o.textContent=n.n;if(n.s===r.semi)o.selected=true;ns.appendChild(o)});
+    ns.onchange=function(){r.semi=parseInt(ns.value,10)};
+    var bs=document.createElement("select");
+    BEATS.forEach(function(b){var o=document.createElement("option");o.value=b;o.textContent=b+"박";if(b===r.beats)o.selected=true;bs.appendChild(o)});
+    bs.onchange=function(){r.beats=parseFloat(bs.value)};
+    var rb=document.createElement("button");rb.textContent=r.rest?"쉼 해제":"쉼표";
+    rb.onclick=function(){r.rest=!r.rest;d.classList.toggle("rest",r.rest);rb.textContent=r.rest?"쉼 해제":"쉼표"};
+    var pv=document.createElement("button");pv.textContent="미리듣기";
+    pv.onclick=function(){speak(r)};
+    t.placeholder="쉼";
+    var gb=document.createElement("button");gb.textContent=r.g?"남":"여";
+    gb.onclick=function(){r.g=r.g?0:1;gb.textContent=r.g?"남":"여"};
+    var ar=document.createElement("div");ar.style.cssText="display:flex;gap:2px";
+    var ins=document.createElement("button");ins.textContent="+쉼";ins.style.flex="1";
+    ins.onclick=function(){
+      var nr={ch:"",semi:r.semi,beats:r.beats,rest:true,nl:r.nl};
+      r.nl=false;rows.splice(i+1,0,nr);render();
+    };
+    var del=document.createElement("button");del.textContent="삭제";del.style.flex="1";
+    del.onclick=function(){
+      if(r.nl&&i>0)rows[i-1].nl=true;
+      rows.splice(i,1);render();
+    };
+    ar.appendChild(ins);ar.appendChild(del);
+    d.appendChild(t);d.appendChild(ns);d.appendChild(bs);d.appendChild(gb);d.appendChild(rb);d.appendChild(pv);d.appendChild(ar);
+    g.appendChild(d);
+    if(r.nl){var b=document.createElement("div");b.className="br";g.appendChild(b)}
+  });
+}
+
+function fill(){
+  // 선택한 조성/음계 안에서 한 음씩 오가는 멜로디를 만들고, 줄 끝은 으뜸음으로 마무리 (누를 때마다 새로 만들어요)
+  var iv=MODES[modeKey].slice(0,7),sc=[];
+  for(var s=-12;s<=12;s++){var pc=(65+s)%12,k=(pc-tonic+12)%12;if(iv.indexOf(k)>=0)sc.push({s:s,t:k===0})}
+  var a=0,bd=99;
+  sc.forEach(function(n,i){if(n.t&&Math.abs(n.s)<bd){bd=Math.abs(n.s);a=i}});
+  var cur=a,st=[-2,-1,-1,0,1,1,2];
+  rows.forEach(function(r,i){
+    if(r.nl||i===rows.length-1)cur=a;
+    else{cur+=st[Math.floor(Math.random()*st.length)];cur=Math.max(a-4,Math.min(a+5,cur))}
+    cur=Math.max(0,Math.min(sc.length-1,cur));
+    r.semi=sc[cur].s;
+  });
+  render();
+}
+function nearest(s){var b=NOTES[0].s;NOTES.forEach(function(n){if(Math.abs(n.s-s)<Math.abs(b-s))b=n.s});return b}
+
+function speak(r){
+  if(!("speechSynthesis" in window)||r.rest||!r.ch.trim())return;
+  var en=/[A-Za-z]/.test(r.ch);
+  var vid=en?(r.g?"voiceEm":"voiceEf"):(r.g?"voiceKm":"voice");
+  var u=new SpeechSynthesisUtterance(r.ch);
+  u.lang=en?"en-US":"ko-KR";
+  var v=voices.filter(function(x){return (x.voiceURI||x.name)===$(vid).value})[0];
+  if(v){u.voice=v;u.lang=v.lang}
+  u.rate=parseFloat($("rate").value);
+  u.pitch=Math.max(0.1,Math.min(2,Math.pow(2,r.semi/12)));
+  // 아이폰/아이패드는 cancel 직후 바로 speak 하면 소리가 안 날 수 있어서, 말하는 중일 때만 끊고 잠깐 기다려요
+  var go=function(){speechSynthesis.speak(u)};
+  if(speechSynthesis.speaking||speechSynthesis.pending){speechSynthesis.cancel();setTimeout(go,60)}else go();
+}
+
+var ctx=null;
+function click(){
+  if(!$("click").checked)return;
+  try{
+    ctx=ctx||new (window.AudioContext||window.webkitAudioContext)();
+    var o=ctx.createOscillator(),g=ctx.createGain();
+    o.frequency.value=1000;g.gain.value=0.05;o.connect(g);g.connect(ctx.destination);
+    o.start();o.stop(ctx.currentTime+0.03);
+  }catch(e){}
+}
+
+function stop(){
+  playing=false;
+  timers.forEach(clearTimeout);timers=[];
+  if("speechSynthesis" in window)speechSynthesis.cancel();
+  document.querySelectorAll(".c.on").forEach(function(e){e.classList.remove("on")});
+}
+
+function play(){
+  stop();
+  if(!rows.length)split();
+  if(!rows.length)return;
+  playing=true;
+  var beatMs=60000/(parseFloat($("bpm").value)||80);
+  var t=150,lastBeat=-1;
+  rows.forEach(function(r,i){
+    var at=t;
+    timers.push(setTimeout(function(){
+      document.querySelectorAll(".c.on").forEach(function(e){e.classList.remove("on")});
+      var el=$("c"+i);if(el)el.classList.add("on");
+      var bi=Math.floor(at/beatMs+0.001);if(bi!==lastBeat){lastBeat=bi;click()}
+      speak(r);
+    },at));
+    t+=r.beats*beatMs;
+  });
+  timers.push(setTimeout(function(){
+    if($("loop").checked&&playing)play();else{stop();endRec()}
+  },t));
+}
+
+var splitArm=false,splitT=null;
+$("split").onclick=function(){
+  var b=this;
+  if(rows.some(function(r){return r.semi!==0||r.rest||r.beats!==parseFloat($("defb").value)})&&!splitArm){
+    splitArm=true;b.textContent="한 번 더 누르면 초기화";
+    clearTimeout(splitT);splitT=setTimeout(function(){splitArm=false;b.textContent="음절로 나누기"},3000);
+    return;
+  }
+  splitArm=false;clearTimeout(splitT);b.textContent="음절로 나누기";
+  split();
+};
+$("fill").onclick=function(){if(!rows.length)split();fill()};
+$("gall").onchange=function(){var g=parseInt(this.value,10);rows.forEach(function(r){r.g=g});render()};
+$("play").onclick=play;
+$("stop").onclick=function(){stop();endRec()};
+
+// 조성 변경: 기존 음들을 같이 이조(transpose)한 뒤 새 음계에 맞춰 보정
+function reKey(){
+  var nt=parseInt($("key").value,10),nm=$("mode").value;
+  var d=((nt-tonic+18)%12)-6;
+  tonic=nt;modeKey=nm;buildNotes();
+  rows.forEach(function(r){r.semi=nearest(r.semi+d)});
+  render();
+}
+$("key").onchange=reKey;
+$("mode").onchange=reKey;
+
+// 파일 저장 (게시 페이지는 downloads 기능, 그 외 환경은 일반 다운로드)
+var toastT=null;
+try{window.alert=function(t){var e=$("toast");e.textContent=t;e.style.display="block";clearTimeout(toastT);toastT=setTimeout(function(){e.style.display="none"},4500)}}catch(e){}
+var dl=null;
+if(window.claude&&claude.use){claude.use("downloads").then(function(d){dl=d}).catch(function(){})}
+function saveFile(name,data){
+  if(dl){
+    dl.save({filename:name,data:data}).catch(function(e){if(!e||e.code!=="declined")alert("저장 실패: "+((e&&e.code)||e))});
+    return;
+  }
+  var b=data instanceof Blob?data:new Blob([data]);
+  var a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=name;
+  document.body.appendChild(a);a.click();a.remove();
+}
+$("saveP").onclick=function(){
+  var p={v:1,lyr:$("lyr").value,bpm:$("bpm").value,rate:$("rate").value,defb:$("defb").value,tonic:tonic,mode:modeKey,rows:rows};
+  saveFile("tts-song.json",JSON.stringify(p));
+};
+$("loadP").onclick=function(){$("fileIn").click()};
+$("fileIn").onchange=function(){
+  var f=this.files[0];if(!f)return;
+  var rd=new FileReader();
+  rd.onload=function(){
+    try{
+      var p=JSON.parse(rd.result);
+      $("lyr").value=p.lyr||"";$("bpm").value=p.bpm||80;$("rate").value=p.rate||1.2;$("defb").value=p.defb||"1";
+      tonic=p.tonic;modeKey=MODES[p.mode]?p.mode:"min";
+      $("key").value=tonic;$("mode").value=modeKey;buildNotes();
+      rows=p.rows||[];render();
+    }catch(e){alert("불러오기 실패: 올바른 프로젝트 파일이 아니에요.")}
+  };
+  rd.readAsText(f);this.value="";
+};
+
+// 녹음: 브라우저 탭 오디오를 캡처해서 저장 (공유 창에서 이 탭 선택 + 탭 오디오 공유 체크)
+var rec=null,chunks=[];
+function endRec(){
+  if(rec&&rec.state!=="inactive"){var r=rec;setTimeout(function(){if(r.state!=="inactive")r.stop()},700)}
+}
+$("recB").onclick=function(){
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getDisplayMedia){alert("이 기기(아이패드/아이폰)에서는 앱 안 녹음이 안 돼요. 대신 제어센터의 화면 기록을 켠 채로 재생하면 소리까지 같이 녹음돼요.");return}
+  navigator.mediaDevices.getDisplayMedia({video:true,audio:true,preferCurrentTab:true}).then(function(st){
+    var at=st.getAudioTracks();
+    if(!at.length){st.getTracks().forEach(function(t){t.stop()});alert("오디오가 공유되지 않았어요. 이 탭을 선택하고 '탭 오디오 공유'를 체크해주세요.");return}
+    rec=new MediaRecorder(new MediaStream(at));chunks=[];
+    rec.ondataavailable=function(e){if(e.data.size)chunks.push(e.data)};
+    rec.onstop=function(){st.getTracks().forEach(function(t){t.stop()});saveFile("tts-song.webm",new Blob(chunks,{type:"audio/webm"}))};
+    rec.start();play();
+  }).catch(function(){alert("녹음을 시작하지 못했어요. 이 페이지에서 화면/탭 공유가 막혀 있을 수 있어요. 아래 방법: 컴퓨터 녹음 프로그램으로 재생을 녹음하세요.")});
+};
+
+split();
+</script>
+<div id="toast"></div>
+<div class="tb"><span class="st">start</span><span class="tk">tts-song.html</span></div>
+</body>
+</html>
