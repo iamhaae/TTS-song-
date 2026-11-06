@@ -88,7 +88,8 @@ input{accent-color:#f0489f}
 <p class="s">가사 → 음절 → 음정·박자 맞추기 / 영어는 단어째 한 칸, 음절로 쪼개려면 but-ter-fly 처럼 하이픈(-)</p>
 
 <div class="wt"><span>♡ lyrics.txt</span><span>_  □  ×</span></div>
-<textarea id="lyr" placeholder="가사 입력 (줄바꿈 가능 / 영어는 단어 단위, sun-set 처럼 - 로 끊으면 음절 단위)">징검다리 선들선들 밟고 오는 봄바람</textarea>
+<textarea id="lyr" placeholder="가사 입력 (줄바꿈 가능 / 영어는 단어 단위, sun-set 처럼 - 로 끊으면 음절 단위)">
+징검다리 선들선들 밟고 오는 봄바람</textarea>
 <div class="row">
   <button class="p" id="split">음절로 나누기</button>
   <button id="fill">멜로디 자동 채우기</button>
@@ -114,12 +115,13 @@ input{accent-color:#f0489f}
   <button id="saveP">프로젝트 저장(.json)</button>
   <button id="loadP">불러오기</button>
   <button id="recB">녹음 저장(.webm)</button>
+  <button class="p" id="midB">MIDI 저장(.mid)</button>
   <input type="file" id="fileIn" accept=".json,application/json" hidden>
 </div>
 
 <div class="grid" id="grid"></div>
 
-<p class="note">참고: 브라우저 TTS는 음절마다 따로 읽어서 타이밍이 약간 흔들릴 수 있어요. 일부 목소리(특히 구글 음성)는 음정 조절을 무시하니, 음정이 안 변하면 목소리를 바꿔보세요. 아이패드는 '녹음 저장'이 안 돼서, 제어센터 화면 기록을 켜고 재생하면 소리까지 녹음돼요. 작업 내용은 프로젝트 저장(json)으로 보관해요. 컴퓨터 크롬에서는 녹음 저장도 쓸 수 있어요.</p>
+<p class="note">참고: 브라우저 TTS는 음절마다 따로 읽어서 타이밍이 약간 흔들릴 수 있어요. 일부 목소리(특히 구글 음성)는 음정 조절을 무시하니, 음정이 안 변하면 목소리를 바꿔보세요. 아이패드는 '녹음 저장'이 안 돼서, 제어센터 화면 기록을 켜고 재생하면 소리까지 녹음돼요. 가사·음정·박자는 'MIDI 저장'으로 파일로 뽑을 수 있어요(zip으로 저장되니 풀어서 쓰세요. 목소리 소리는 안 들어가고, 음표+가사 글자가 들어가요). 작업 내용은 프로젝트 저장(json)으로 보관해요. 컴퓨터 크롬에서는 녹음 저장도 쓸 수 있어요.</p>
 
 <script>
 // F 마이너(자연 단음계 + 화성 E) 음 목록: F3 ~ F5, F4 기준 반음 오프셋
@@ -364,6 +366,54 @@ $("recB").onclick=function(){
     rec.start();play();
   }).catch(function(){alert("녹음을 시작하지 못했어요. 이 페이지에서 화면/탭 공유가 막혀 있을 수 있어요. 아래 방법: 컴퓨터 녹음 프로그램으로 재생을 녹음하세요.")});
 };
+
+// MIDI 내보내기: 여성/남성 목소리를 각각 트랙으로, 악기는 파일 안에 지정(Choir Aahs)해서 열면 바로 소리 나게
+function vlq(n){var b=[n&127];while((n>>=7)>0)b.unshift((n&127)|128);return b}
+function strB(s){return Array.prototype.slice.call(new TextEncoder().encode(s))}
+function mev(dt,type,bytes){return vlq(dt).concat([255,type],vlq(bytes.length),bytes)}
+function trk(ev){var n=ev.length;return [77,84,114,107,(n>>>24)&255,(n>>>16)&255,(n>>>8)&255,n&255].concat(ev)}
+function buildMidi(){
+  var PPQ=480,bpm=parseFloat($("bpm").value)||80,mpq=Math.round(60000000/bpm);
+  var t0=[].concat(mev(0,3,strB("tempo")),mev(0,81,[(mpq>>16)&255,(mpq>>8)&255,mpq&255]),mev(0,88,[4,2,24,8]),mev(0,47,[]));
+  var out=[trk(t0)];
+  var st=[],du=[],t=0;
+  rows.forEach(function(r,i){st[i]=t;du[i]=Math.round(r.beats*PPQ);t+=du[i]});
+  var names=["여성 보컬","남성 보컬"];
+  [0,1].forEach(function(g){
+    var mine=rows.map(function(r,i){return i}).filter(function(i){var r=rows[i];return (r.g?1:0)===g&&!r.rest&&r.ch.trim()});
+    if(!mine.length)return;
+    var ch=g,ev=[].concat(mev(0,3,strB(names[g])),[0,192|ch,52],[0,176|ch,7,100]),last=0;
+    mine.forEach(function(i){
+      var r=rows[i],note=Math.max(0,Math.min(127,65+r.semi)),len=Math.max(1,Math.round(du[i]*0.95));
+      ev=ev.concat(mev(st[i]-last,5,strB(r.ch)));
+      ev=ev.concat([0,144|ch,note,96]);
+      ev=ev.concat(vlq(len),[128|ch,note,0]);
+      last=st[i]+len;
+    });
+    ev=ev.concat(mev(0,47,[]));
+    out.push(trk(ev));
+  });
+  var head=[77,84,104,100,0,0,0,6,0,1,0,out.length,(PPQ>>8)&255,PPQ&255];
+  return head.concat.apply(head,out);
+}
+$("midB").onclick=function(){
+  if(!rows.length)split();
+  if(!rows.length){alert("가사를 먼저 입력해 주세요.");return}
+  var mb=new Uint8Array(buildMidi());
+  if(dl){alert("게시 페이지에서는 .mid를 바로 저장할 수 없어서 zip으로 묶어 저장해요. 저장 후 파일 앱에서 zip을 눌러 풀면 tts-song.mid가 나와요.");saveFile("tts-song-midi.zip",new Blob([zipOne("tts-song.mid",mb)]))}
+  else saveFile("tts-song.mid",new Blob([mb]));
+};
+
+// .mid는 저장 허용 확장자가 아니라서, 압축 없이 묶기만 하는 간단한 zip으로 포장
+function crc32(b){var c,t=crc32.t;if(!t){t=crc32.t=[];for(var n=0;n<256;n++){c=n;for(var k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}}var r=-1;for(var i=0;i<b.length;i++)r=t[(r^b[i])&255]^(r>>>8);return(r^-1)>>>0}
+function le(n,w){var a=[];for(var i=0;i<w;i++)a.push((n>>>(8*i))&255);return a}
+function zipOne(name,bytes){
+  var nm=strB(name),crc=crc32(bytes),sz=bytes.length;
+  var lh=[80,75,3,4].concat(le(20,2),le(2048,2),le(0,2),le(0,2),le(33,2),le(crc,4),le(sz,4),le(sz,4),le(nm.length,2),le(0,2),nm);
+  var cd=[80,75,1,2].concat(le(20,2),le(20,2),le(2048,2),le(0,2),le(0,2),le(33,2),le(crc,4),le(sz,4),le(sz,4),le(nm.length,2),le(0,2),le(0,2),le(0,2),le(0,2),le(0,4),le(0,4),nm);
+  var eo=[80,75,5,6].concat(le(0,2),le(0,2),le(1,2),le(1,2),le(cd.length,4),le(lh.length+sz,4),le(0,2));
+  return new Uint8Array(lh.concat(Array.prototype.slice.call(bytes),cd,eo));
+}
 
 split();
 </script>
