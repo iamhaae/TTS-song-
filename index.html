@@ -291,6 +291,9 @@ function play(){
   playing=true;
   var beatMs=60000/(parseFloat($("bpm").value)||80);
   if(eng()==="syn"){playSyn(beatMs);return}
+  if(instBuf){var a1=getCtx();
+    if(!play.tried&&a1.state!=="running"){play.tried=1;var f=function(){if(play.tried!==1)return;play.tried=2;if(playing)play()};a1.resume().then(f,f);setTimeout(f,500);return}
+    play.tried=0}
   var pl=plan(beatMs/1000);
   if(instBuf&&pl.pos<instBuf.duration){var a0=getCtx();mg=a0.createGain();mg.connect(a0.destination);var g0=a0.createGain();g0.gain.value=+$("iv").value;g0.connect(mg);var x0=a0.createBufferSource();x0.buffer=instBuf;x0.connect(g0);x0.start(a0.currentTime+0.15,pl.pos)}
   var t=150+pl.vd*1000,lastBeat=-1;
